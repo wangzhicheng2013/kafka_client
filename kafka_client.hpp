@@ -268,14 +268,15 @@ private:
 };
 class consumer {
 public:
-	consumer() = default;
+	consumer() {
+        load_config();
+    }
     ~consumer() {
         destroyed();
         RdKafka::wait_destroyed(WAIT_TIME_OUT);
     }
 public:
 	bool init() {
-        load_config();
         if (!create_conf()) {
             return false;
         }
@@ -307,6 +308,12 @@ public:
         conf_config_map_["socket.keepalive.enable"] = "true";
         conf_config_map_["auto.offset.reset"] = "latest";
     }
+    void load_config(const std::map<std::string, std::string>conf_config_map) {
+        for (auto &e : conf_config_map) {
+            conf_config_map_[e.first] = e.second;
+        }
+    }
+
     inline bool create_conf() {
         conf_ = std::unique_ptr<RdKafka::Conf>(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL));
         if (!conf_) {
